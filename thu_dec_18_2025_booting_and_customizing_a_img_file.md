@@ -1,8 +1,3 @@
-
-## @sharesourcecode
-
-Por favor repita todos os passos desde o inicio com esta ultima correção
-
 ## Copilot
 
 Claro, aqui está o guia **completo e corrigido** para configurar a sua imagem `.img` com o **SYSLINUX**, utilizando `LABEL=easy2` nas configurações do boot. Este guia foi ajustado com base nos problemas encontrados anteriormente e já incorpora as últimas correções para garantir que tudo funcione corretamente.
@@ -88,21 +83,21 @@ Claro, aqui está o guia **completo e corrigido** para configurar a sua imagem `
 
    Insira o seguinte conteúdo:
    ```cfg
-   UI ldlinux.c32
-   PROMPT 0
-   MENU TITLE easyos Linux Boot Menu
-   TIMEOUT 50
-   DEFAULT linux
+  UI ldlinux.c32
+PROMPT 0
+MENU TITLE easyos Linux Boot Menu
+TIMEOUT 50
+DEFAULT linux
 
-   LABEL linux
-       MENU LABEL easyos Linux Live
-       KERNEL /boot/vmlinuz
-       APPEND initrd=/boot/initrd.img root=LABEL=easy2 rd.live.image
+LABEL linux
+    MENU LABEL easyos Linux Live
+    KERNEL /easyos/vmlinuz
+    APPEND initrd=/easyos/initrd root=LABEL=easy2 rd.live.image
 
-   LABEL linux-vesa
-       MENU LABEL easyos Linux Live (VESA)
-       KERNEL /boot/vmlinuz
-       APPEND initrd=/boot/initrd.img root=LABEL=easy2 rd.live.image nomodeset xforcevesa
+LABEL linux-vesa
+    MENU LABEL easyos Linux Live (VESA)
+    KERNEL /easyos/vmlinuz
+    APPEND initrd=/easyos/initrd root=LABEL=easy2 rd.live.image nomodeset xforcevesa
    ```
 
    **Nota:** `LABEL=easy2` corresponde ao nome da partição raiz, identificado anteriormente no comando `lsblk -f`.
@@ -155,122 +150,6 @@ APPEND initrd=/boot/initrd.img root=UUID=e5fb950a-a51e-11f0-b7e6-287fcfeb4376 rd
 ---
 
 Com essas etapas concluídas, o **SYSLINUX** será configurado corretamente, e o sistema deve inicializar a partir do **pendrive** no PC antigo.
-
-Se tiver mais dúvidas ou aparecerem problemas, basta me avisar! 😊
-
-## @sharesourcecode
-
-sudo mount /dev/sdb2 /mnt
-ls /mnt/boot
-ls: não foi possível acessar '/mnt/boot': Arquivo ou diretório inexistente
-[cabana@void Downloads]$ ls /mnt
-easyos
-[cabana@void Downloads]$ ls /mnt/easyos/
-easy.sfs  initrd  vmlinuz
-
-
-## Copilot
-
-A partir da saída, vemos que os arquivos essenciais para o boot estão na raiz do diretório `/mnt/easyos/` na partição do sistema (`/dev/sdb2`). Estes são:
-- `vmlinuz` — O kernel.
-- `initrd` — O arquivo de ramdisk inicial.
-- `easy.sfs` — O sistema de arquivos squashfs.
-
-No entanto, **não existe um diretório `/boot`**, então o arquivo de configuração `syslinux.cfg` deve ser ajustado para refletir a estrutura correta da partição.
-
----
-
-## **Correção do Arquivo `syslinux.cfg`**
-
-Edite o arquivo `syslinux.cfg` (dentro da partição EFI) para ajustar os caminhos. Abra novamente o arquivo com o comando:
-
-```bash
-sudo nano ~/easyimg_efi/syslinux.cfg
-```
-
-Substitua o caminho **`/boot/vmlinuz`** e **`/boot/initrd.img`** pelos caminhos atualizados. O arquivo deverá ficar assim:
-
-```cfg
-UI ldlinux.c32
-PROMPT 0
-MENU TITLE easyos Linux Boot Menu
-TIMEOUT 50
-DEFAULT linux
-
-LABEL linux
-    MENU LABEL easyos Linux Live
-    KERNEL /easyos/vmlinuz
-    APPEND initrd=/easyos/initrd root=LABEL=easy2 rd.live.image
-
-LABEL linux-vesa
-    MENU LABEL easyos Linux Live (VESA)
-    KERNEL /easyos/vmlinuz
-    APPEND initrd=/easyos/initrd root=LABEL=easy2 rd.live.image nomodeset xforcevesa
-```
-
-### Alterações que foram feitas:
-1. **`KERNEL` atualizado**:
-   - Antigamente: `/boot/vmlinuz`
-   - Agora: `/easyos/vmlinuz`
-
-2. **`initrd` atualizado**:
-   - Antigamente: `/boot/initrd.img`
-   - Agora: `/easyos/initrd`
-
-3. **`root=LABEL=easy2` permanece**: O identificador `LABEL=easy2` está correto para localizar a partição raiz.
-
----
-
-## **Passos Após a Alteração**
-
-1. Salve o arquivo e saia do editor:
-   - Pressione `Ctrl+O` para salvar.
-   - Pressione `Ctrl+X` para sair.
-
-2. Desmonte e libere o dispositivo loop, se ele ainda estiver ativo:
-   ```bash
-   sudo umount ~/easyimg_efi
-   sudo losetup -d /dev/loop0
-   ```
-
-3. Grave a imagem corrigida no pendrive:
-   ```bash
-   sudo dd if=easy-6.6.10-amd64-custom.img of=/dev/sdb bs=4M status=progress oflag=sync
-   sync
-   ```
-
-4. Insira o pendrive no PC e configure o boot em Legacy BIOS.
-
----
-
-## **Teste e Resultados Esperados**
-
-### Caso o Boot Funcione Corretamente:
-Você verá o menu do SYSLINUX com as duas opções de inicialização:
-- "easyos Linux Live"
-- "easyos Linux Live (VESA)" (gráficos genéricos).
-
-Selecione uma entrada e o sistema deve carregar corretamente.
-
----
-
-### Se Algo Der Errado no Boot:
-1. **Problema: "Kernel not found" ou "initrd not found"**
-   - Certifique-se de que os arquivos `vmlinuz` e `initrd` estão exatamente no diretório `/easyos/` da partição do sistema.
-   - Use:
-     ```bash
-     sudo mount /dev/sdb2 /mnt
-     ls /mnt/easyos
-     ```
-
-2. **Problema: Não localizou a partição raiz (`root=`)**
-   - Substitua `LABEL=easy2` no arquivo `syslinux.cfg` por `UUID=<UUID>`:
-     ```cfg
-     APPEND initrd=/easyos/initrd root=UUID=e5fb950a-a51e-11f0-b7e6-287fcfeb4376 rd.live.image
-     ```
-
-3. **Para mais informações de erro**:
-   - Observe a mensagem exibida pela saída do SYSLINUX ou do kernel, e me informe para que possamos resolver!
 
 ---
 
