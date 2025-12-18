@@ -83,18 +83,18 @@ Claro, aqui está o guia **completo e corrigido** para configurar a sua imagem `
 
    Insira o seguinte conteúdo:
    ```cfg
-  UI ldlinux.c32
-PROMPT 0
-MENU TITLE easyos Linux Boot Menu
-TIMEOUT 50
-DEFAULT linux
+   UI ldlinux.c32
+   PROMPT 0
+   MENU TITLE easyos Linux Boot Menu
+   TIMEOUT 50
+   DEFAULT linux
 
-LABEL linux
+   LABEL linux
     MENU LABEL easyos Linux Live
     KERNEL /easyos/vmlinuz
     APPEND initrd=/easyos/initrd root=LABEL=easy2 rd.live.image
 
-LABEL linux-vesa
+   LABEL linux-vesa
     MENU LABEL easyos Linux Live (VESA)
     KERNEL /easyos/vmlinuz
     APPEND initrd=/easyos/initrd root=LABEL=easy2 rd.live.image nomodeset xforcevesa
